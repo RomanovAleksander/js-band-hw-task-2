@@ -1,27 +1,20 @@
-import data from '../../data.js';
-let count = 0;
+import { getTruckById, getTruckIds } from "../utils.js";
 
 export default function getTruckListCallback(callback) {
-  setTimeout(() => {
-    const isError = Math.ceil(Math.random() * 1000) < 100;
-    if (isError && count < 2) {
-      count++;
-      getTruckListCallback(callback);
-    }
-    if (isError && count >= 2) {
-      count = 0;
-      callback({
-        data: null,
-        status: 404,
-        message: "Error",
-        requests: count
-      });
-    }
-    callback({
-      data: data.TRUCKS,
-      status: 200,
-      message: 'Callback Success',
-      requests: count
+  const list = [];
+  getTruckIds().then((ids) => {
+    ids.forEach((id) => {
+      getTruckById(id)
+        .then((item) => list.push(item))
+        .catch((error) => {
+          getTruckById(id)
+            .then((item) => list.push(item))
+            .catch((error) => callback({
+              status: 404,
+              message: "Error",
+            }));
+        });
     });
-  }, 1000)
+  });
+  return callback(list);
 }

@@ -1,31 +1,22 @@
-import data from '../../data.js';
-let count = 0;
+import { getTruckById, getTruckIds } from "../utils.js";
 
 export default function getTruckListPromise() {
-  const isError = Math.ceil(Math.random() * 1000) < 100;
-
+  const list = [];
   return new Promise(((resolve, reject) => {
-    setTimeout(() => {
-      if (isError && count < 2) {
-        count++;
-        reject();
-        getTruckListPromise();
-      }
-      if (isError && count >= 2) {
-        count = 0;
-        reject({
-          data: null,
-          status: 404,
-          message: "Error",
-          requests: count
+    getTruckIds()
+      .then((ids) => {
+        ids.forEach((id) => {
+          getTruckById(id)
+            .then((item) => list.push(item))
+            .catch((error) => {
+              getTruckById(id)
+                .then((item) => list.push(item))
+                .catch((error) => console.log('Error', error));
+            });
         });
-      }
-      resolve({
-        data: data.TRUCKS,
-        status: 200,
-        message: 'Promise Success',
-        requests: count
-      });
-    }, 1000);
-  }))
+        return list;
+      })
+      .then((list => resolve(list)))
+      .catch((error) => reject(error))
+  }));
 }

@@ -1,33 +1,21 @@
-import data from '../../data.js';
-let count = 0;
+import { getTruckById, getTruckIds } from "../utils.js";
 
 export default async function getTruckListAsyncAwait() {
-  let isError = Math.ceil(Math.random()*1000) < 100;
+  const ids = await getTruckIds();
+  const list = [];
 
-  let result = await new Promise((resolve, reject) => {
-    setTimeout(() => {
-      if (isError && count < 2) {
-        count++;
-        reject();
-        getTruckListAsyncAwait();
+  for (let id of ids) {
+    try {
+      const item = await getTruckById(id);
+      list.push(item);
+    } catch (error) {
+      try {
+        const item = await getTruckById(id);
+        list.push(item);
+      } catch (error) {
+        console.log('Error', error);
       }
-      if (isError && count >= 2) {
-        count = 0;
-        reject({
-          data: null,
-          status: 404,
-          message: "Error",
-          requests: count
-        });
-      }
-      resolve({
-        data: data.TRUCKS,
-        status: 200,
-        message: 'Async Success',
-        requests: count
-      });
-    }, 1000);
-  });
-
-  return result;
+    }
+  }
+  return list;
 }
